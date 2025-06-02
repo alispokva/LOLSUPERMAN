@@ -1,0 +1,19 @@
+/* VARIABLES */
+
+/* ROOM */
+
+const Bot = "Alis Pokva: "; // Bot's name
+
+// GLOBAL VARIABLES //
+const roomName = "♻ CHAT GAY HOT 24/7 | CON ARDILLA ♻";
+const botName ="mc ardilla";
+const maxPlayers = 20;
+const roomPublic = true;
+const roomPassword = "israel"
+// GEOLOCALIZATION //
+const geo = [{"code": "IL", "lat": 40, "lon": -3}];
+
+// Admin password //
+var adminPassword = 554411;
+
+const room = HBInit({ roomName: roomName, maxPlayers: maxPlayers, public: roomPublic, playerName: botName, geo: geo[0] });

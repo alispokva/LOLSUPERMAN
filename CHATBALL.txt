@@ -1,19 +1,243 @@
-/* VARIABLES */
-
-/* ROOM */
-
-const Bot = "Alis Pokva: "; // Bot's name
-
-// GLOBAL VARIABLES //
-const roomName = "♻ CHAT GAY HOT 24/7 | CON ARDILLA ♻";
-const botName ="mc ardilla";
-const maxPlayers = 20;
+const roomName = "♻ ROL CASA ARDILLA Y SANTI ♻";
+const botName ="Dueño del Piso";
+const maxPlayers = 30;
 const roomPublic = true;
-const roomPassword = "israel"
-// GEOLOCALIZATION //
-const geo = [{"code": "IL", "lat": 40, "lon": -3}];
 
-// Admin password //
-var adminPassword = 554411;
+// GEOLOCALIZATION //
+const geo = [{"code": "VE", "lat": 40, "lon": -2.99}];
 
 const room = HBInit({ roomName: roomName, maxPlayers: maxPlayers, public: roomPublic, playerName: botName, geo: geo[0] });
+
+room.setDefaultStadium("Small");
+room.setScoreLimit(3);
+room.setTimeLimit(0);
+
+// If there are no admins left in the room give admin to one of the remaining players.
+function updateAdmins() { 
+  // Get all players
+  let players = room.getPlayerList();
+  if ( players.length == 0 ) return; // No players left, do nothing.
+  if ( players.find((player) => player.admin) != null ) return; // There's an admin left so do nothing.
+  room.setPlayerAdmin(players[0].id, true); // Give admin to the first non admin player in the list
+}
+
+room.onPlayerJoin = function(player) {
+  updateAdmins();
+}
+
+room.onPlayerLeave = function(player) {
+  updateAdmins();
+}
+
+//codigo copiado test admin
+room.onPlayerChat = function(player, msg) {
+    // capaz no hace falta el log??
+    let log = {
+        "ID": player.id,
+        "Name": player.name,
+        "isAdmin": player.admin
+    };
+    console.log(log)
+    // refactorizar este if para que tambien capte el "t" del teamchat y no use el split
+    if (msg.startsWith("!")) {
+        let textMsg = msg.substr(1).split(" ");
+        let commandName = textMsg[0] && textMsg[0].toLowerCase();
+        let commandArgs = textMsg[1] && textMsg[1].toLowerCase();
+
+        switch (commandName){
+            case "admin":
+                if (commandArgs == "mono1"){
+                    room.setPlayerAdmin(player.id,true)
+                } else {
+                    room.sendAnnouncement("estas equivocado che, esa no es la contra.", player.id,0xff5447, "italic", 2)
+                }
+
+                return false;
+            case "bb":
+                room.kickPlayer(player.id, "bueno chau", false);
+                return false;
+            case "swap":
+                if (!player.admin){
+                    room.sendAnnouncement("che tenes que ser admin para usar este comando.", player.id,0xff5447, "italic", 2);
+                    return false;
+                }
+                let jugadoresId = room.getPlayerList().map(p => p.id)
+                jugadoresId.forEach((jugadorId)=>{
+                    let teamActual = room.getPlayer(jugadorId).team
+                    if (teamActual == 1) room.setPlayerTeam(jugadorId, 2)
+                    if (teamActual == 2) room.setPlayerTeam(jugadorId, 1)
+                })
+                room.sendAnnouncement("cambiando jugadores de lados!")
+                return false;
+            case "ayuda":
+                room.sendAnnouncement("los comandos son:\t !admin [pass]\t !ayuda\t !bb\t !swap" , player.id,0x00ff00, "nomal", 2);
+                return false;
+            case "bb":
+                room.kickPlayer(player.id,"hasta luego che, cuidate.");
+                return false;
+            default:
+                room.sendAnnouncement("no reconozco ese comando, disculpa.", player.id,0xff5447, "italic", 2)
+                return false;
+        }
+    }
+}
+
+// asist y goleador
+let lastkicker;
+let lastkicker2;
+
+let partidoAsist;
+let partidoGol;
+let partidoGolEncontra;
+
+room.onGameStart = function(byPlayer){
+    lastkicker2 = {
+        name: "",
+        team: undefined
+    };
+    lastkicker = {
+        name: "",
+        team: undefined
+    };
+
+    partidoAsist = [];
+    partidoGol = [];
+    partidoGolEncontra = [];
+
+}
+
+room.onPlayerBallKick = function(player){
+    if(lastkicker.name == player.name){
+        lastkicker2.name = "";
+
+        lastkicker = {
+            name: player.name,
+            team: room.getPlayerList().filter( l => l.name == player.name)[0].team
+        }
+
+    } else {
+        lastkicker2 = lastkicker;
+        
+        lastkicker = {
+            name: player.name,
+            team: room.getPlayerList().filter( l => l.name == player.name)[0].team
+        };
+    }
+}
+
+room.onTeamGoal = function(team) {
+    const festejos = [
+        "¡Qué golazo de " + lastkicker.name + "!",
+        "¡" + lastkicker.name + " está imparable!",
+        "¡" + lastkicker.name + " lo hizo de nuevo!",
+        "¡Golazo de " + lastkicker.name + "! ¡El proximo maradona!",
+        "¡Golazo de el goat " + lastkicker.name,
+        "¡" + lastkicker.name + " deja un poco para los demas!"
+    ];
+    
+    const mensajeAleatorio = festejos[Math.floor(Math.random() * festejos.length)];
+    
+    if (lastkicker.team != team){ // gol encontra
+
+        partidoGolEncontra.push(lastkicker.name)
+        room.sendAnnouncement("este "+ lastkicker.name +" es un boludo", null, 0xffff82, "italic", 0);
+    }else{
+        if (lastkicker2.name === "") {
+            
+            partidoGol.push(lastkicker.name)
+            room.sendAnnouncement(mensajeAleatorio, null, 0xffff82, "italic", 0);
+        } else {
+            partidoGol.push(lastkicker.name)
+            partidoAsist.push(lastkicker2.name)
+            
+            room.sendAnnouncement(mensajeAleatorio + ", Asistencia de " + lastkicker2.name, null, 0xffff82, "italic", 0);
+        }
+    }
+    
+}
+// funcion -> nombres con stats
+
+let nameStats = (playerName,pGol,pGolEncontra,pAsist)=>{
+    let name = playerName;
+            pGol.forEach(p => {
+                if (playerName == p){
+                    name+= " ⚽"
+                }
+            });
+
+            pGolEncontra.forEach(p => {
+                if (playerName == p){
+                    name+= " 🤡"
+                }
+            });
+
+            pAsist.forEach(p => {
+                if (playerName == p){
+                    name+= " 👟"
+                }
+            });
+    
+    return name;
+}
+
+
+//codigito copiado, test
+let sendRecWebhookURL = "https://discord.com/api/webhooks/1277088341791346749/gLNy0T62oS4nVt6qQUb6VvdROE7_XpUF7FeIDLl1c8vrYoC0JOyx4KfhUfDFJQZ-N8RY"
+let roomNameString = room.roomName;
+let RecSistem = {
+    getCustomDate: ()=>{
+        let
+        data = new Date().toLocaleDateString().split("/").join("-"),
+        relogio = new Date().toLocaleTimeString().split(":");
+
+        return `${data}-${relogio[0]}h${relogio[1]}m`;
+    },
+    getScoresTime: time=>{
+        return ~~(Math.trunc(time) / 60) + ":" + (Math.trunc(time)%60).toString().padStart(2, '0');
+    },
+    sendDiscordWebhook: (scores, pGol,pGolEncontra,pAsist)=>{
+        let red = room.getPlayerList().filter((player)=>player.team == 1).map((player)=> nameStats(player.name,pGol,pGolEncontra,pAsist))
+
+        let blue = room.getPlayerList().filter((player)=>player.team == 2).map((player)=> nameStats(player.name,pGol,pGolEncontra,pAsist));
+
+        let form = new FormData();
+        form.append(null, new File( [room.stopRecording()], `HBReplay-${RecSistem.getCustomDate()}.hbr2`, {"type": "text/plain"} ));
+        form.append("payload_json", JSON.stringify(RecSistem.getParams(scores, red, blue)));
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", sendRecWebhookURL);
+        xhr.send(form);
+    },
+    getParams: (scores, red, blue)=>{
+        let params = {
+          "username": "Match Record",
+          "avatar_url": "",//Avatar Url Of The Bot
+          "content": "",
+          "embeds": [{
+            "title": "",
+            "color": 2078513,
+            "description": "",
+            "timestamp": null,
+            "author": { "name": roomNameString },
+            "image": {},
+            "thumbnail": {},
+            "footer": {
+                "text": `Match Record - Statistics`,
+                "icon_url": ""
+            },
+            "fields": [
+            { "name": "🔴RED", "value": `${red.join("\n")}\n**⚽Goals**\n${scores.red}`, "inline": true },
+            { "name": "🔵BLUE", "value": `${blue.join("\n")}\n**⚽Goals**\n${scores.blue}`, "inline": true },
+            { "name": "🕐Time", "value": RecSistem.getScoresTime(scores.time) }
+            ]
+        }],
+        "components": []
+    };
+    return params;
+}
+
+};
+
+room.onTeamVictory = function(scores) {
+    RecSistem.sendDiscordWebhook(scores,partidoGol,partidoGolEncontra,partidoAsist); // repensar cuando enviar al discord, puede fallar si meten un gol y sacan al jugador.
+}

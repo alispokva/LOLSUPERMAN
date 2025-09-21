@@ -2,15 +2,15 @@
 
 /* ROOM */
 
-const roomName = 'PELAYO PAGA LA SALA CABRON';
+const roomName = 'SALA PRIVADA Y VIGILADA 24/7';
 const maxPlayers = 30;
 const roomPublic = true;
 
 // GEOLOCALIZATION //
-const geo = [{"code": "UY", "lat": 40, "lon": -3}];
+const geo = [{"code": "KP", "lat": 40, "lon": -3}];
 
-var roomWebhook = ''; // this webhook is used to send the details of the room (chat, join, leave) ; it should be in a private discord channel
-var gameWebhook = ''; // this webhook is used to send the summary of the games ; it should be in a public discord channel
+var roomWebhook = 'https://discord.com/api/webhooks/1411843058806554654/fIYZrB7B_69PqxjxyIDS-eOO2Q6ERuHjitYBM9g_ieMfkwV5XeSge5iVjj4gjjqbwRsQ'; // this webhook is used to send the details of the room (chat, join, leave) ; it should be in a private discord channel
+var gameWebhook = 'https://discord.com/api/webhooks/1418389351825670215/f40kdiaj20N8TVmGIIqN8Udtdcglp6rCh0mKdk1JZi79npBZ1WBcPKnsDtgSY-HELSLC'; // this webhook is used to send the summary of the games ; it should be in a public discord channel
 var fetchRecordingVariable = true;
 var timeLimit = 0;
 var scoreLimit = 0;
@@ -37,7 +37,7 @@ room.setTimeLimit(timeLimit);
 room.setTeamsLock(true);
 room.setKickRateLimit(6, 0, 0);
 
-var masterPassword = '8372';
+var masterPassword = '1921';
 var roomPassword = '';
 
 /* OPTIONS */
